@@ -1,0 +1,14 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import { createParcel, listParcels, removeParcel, trackParcel, updateStatus, STATUSES, TRUCK_STATUSES } from '../controllers/parcelController.js';
+import { authorize, protect } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+const router = Router(); const id = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid parcel id.');
+const contact = z.object({ name: z.string().trim().min(2), email: z.string().email().optional().or(z.literal('')), phone: z.string().trim().min(5), address: z.string().trim().min(5) });
+router.get('/track/:trackingNumber', validate(z.object({ params: z.object({ trackingNumber: z.string().trim().min(3).transform((v) => v.toUpperCase()) }) })), trackParcel);
+router.use(protect);
+router.get('/', validate(z.object({ query: z.object({ page: z.coerce.number().int().min(1).default(1), limit: z.coerce.number().int().min(1).max(100).default(20), status: z.enum(STATUSES).optional(), search: z.string().trim().max(100).optional() }) })), listParcels);
+router.post('/', authorize('courier_staff', 'admin'), validate(z.object({ body: z.object({ trackingNumber: z.string().trim().min(5).max(50).optional(), customerId: id, driverId: id.optional().or(z.literal('')), senderDetails: contact, receiverDetails: contact, weight: z.coerce.number().positive().max(10000), destination: z.string().trim().min(2).max(160), origin: z.string().trim().max(160).optional(), estimatedDeliveryDate: z.coerce.date().refine((date) => date > new Date(), 'Estimated delivery date must be in the future.') }) })), createParcel);
+router.patch('/:id/status', authorize('driver', 'courier_staff', 'admin'), validate(z.object({ params: z.object({ id }), body: z.object({ status: z.enum(STATUSES).optional(), truckStatus: z.enum(TRUCK_STATUSES).optional(), location: z.string().trim().max(160).default(''), note: z.string().trim().max(500).default('') }).refine((body) => body.status || body.truckStatus || body.location || body.note, 'Provide at least one update.') })), updateStatus);
+router.delete('/:id', validate(z.object({ params: z.object({ id }) })), removeParcel);
+export default router;

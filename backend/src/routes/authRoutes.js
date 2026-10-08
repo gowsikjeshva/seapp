@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import { login, me, register } from '../controllers/authController.js';
+import { protect } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+const router = Router();
+const credentials = z.object({ email: z.string().email(), password: z.string().min(8).max(128) });
+router.post('/register', validate(z.object({ body: credentials.extend({ name: z.string().trim().min(2).max(80), role: z.enum(['customer', 'driver', 'admin']).default('customer'), vehicleNumber: z.string().trim().max(40).optional().default('') }).refine((data) => data.role !== 'driver' || data.vehicleNumber.length >= 2, { message: 'Vehicle number is required for driver accounts.', path: ['vehicleNumber'] }) })), register);
+router.post('/login', validate(z.object({ body: credentials })), login);
+router.get('/me', protect, me);
+export default router;

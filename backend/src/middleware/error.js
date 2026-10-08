@@ -1,0 +1,2 @@
+export function notFound(req, _res, next) { const error = new Error(`Route not found: ${req.method} ${req.originalUrl}`); error.statusCode = 404; next(error); }
+export function errorHandler(err, _req, res, _next) { const status = err.statusCode || (err.name === 'ValidationError' ? 400 : 500); if (err.code === 11000) return res.status(409).json({ message: 'A record with that value already exists.' }); console.error(err); res.status(status).json({ message: err.isOperational || status < 500 ? err.message : 'An unexpected server error occurred.' }); }

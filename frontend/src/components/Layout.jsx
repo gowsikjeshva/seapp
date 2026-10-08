@@ -1,0 +1,9 @@
+import { Link, NavLink, Outlet } from 'react-router-dom';
+import { LogOut, PackageCheck, LayoutDashboard, Search } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+export default function Layout() {
+  const { user, logout } = useAuth(); const staff = ['admin', 'courier_staff'].includes(user?.role); const driver = user?.role === 'driver';
+  const navClass = ({ isActive }) => `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100'}`;
+  return <div className="min-h-screen bg-slate-50"><header className="border-b bg-white"><div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4"><Link to="/" className="flex items-center gap-2 font-bold text-slate-900"><PackageCheck className="text-brand-600"/>ParcelPath</Link><div className="flex items-center gap-3 text-sm"><span className="hidden text-slate-500 sm:block">{user?.name}{user && ` · ${user.role}`}</span>{user ? <button onClick={logout} className="flex items-center gap-1 rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100"><LogOut size={16}/>Sign out</button> : <Link className="rounded-lg bg-brand-600 px-4 py-2 font-medium text-white" to="/login">Sign in</Link>}</div></div></header>{user ? <div className="mx-auto flex max-w-7xl"><aside className="hidden w-56 border-r bg-white p-4 md:block"><nav className="space-y-1"><NavLink className={navClass} to="/dashboard"><LayoutDashboard size={17}/>Dashboard</NavLink><NavLink className={navClass} to="/"><Search size={17}/>Track parcel</NavLink>{(staff || driver) && <NavLink className={navClass} to="/dashboard/manage"><PackageCheck size={17}/>{driver ? 'My deliveries' : 'Manage parcels'}</NavLink>}</nav></aside><main className="min-w-0 flex-1 p-4 sm:p-8"><Outlet /></main></div> : <Outlet />}</div>;
+}

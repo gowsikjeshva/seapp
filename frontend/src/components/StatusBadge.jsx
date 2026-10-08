@@ -1,0 +1,2 @@
+const colors = { 'Order Created': 'bg-slate-100 text-slate-700', 'Picked Up': 'bg-amber-100 text-amber-800', 'In Transit': 'bg-blue-100 text-blue-800', 'Out for Delivery': 'bg-violet-100 text-violet-800', Delivered: 'bg-emerald-100 text-emerald-800', Cancelled: 'bg-red-100 text-red-800' };
+export default function StatusBadge({ status }) { return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${colors[status] || colors['Order Created']}`}>{status}</span>; }
